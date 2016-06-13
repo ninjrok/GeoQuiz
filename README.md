@@ -2,7 +2,7 @@
 A boolean answer based geography android quiz app. An android network operation example.
 
 Implements asynctask for network operation to update question answer combinations.
-<h2>JSON Format</h2>
+<h3>JSON Format</h3>
 ```
 [
   {
