@@ -145,9 +145,22 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.d(DEBUG_TAG, "Inside onSaveInstanceState");
+        savedInstanceState.putInt("KEY_INDEX", mCurrentIndex);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
+
+        if (savedInstanceState != null) {
+            mCurrentIndex = savedInstanceState.getInt("KEY_INDEX", 0);
+        }
+
+        mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
 
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -156,10 +169,9 @@ public class QuizActivity extends AppCompatActivity {
             Log.d(DEBUG_TAG, "Starting async task.");
             new PopulateQuestionBank().execute();
         } else {
-            Toast.makeText(QuizActivity.this, "No Network Available", Toast.LENGTH_LONG);
+            Log.d(DEBUG_TAG, "No Network Available");
+            mQuestionTextView.setText(R.string.no_network);
         }
-
-        mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
 
         mTrueButton = (Button) findViewById(R.id.true_button);
         mFalseButton = (Button) findViewById(R.id.false_button);
@@ -206,5 +218,11 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestionTextView();
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(DEBUG_TAG, "Inside onResume");
     }
 }
