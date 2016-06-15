@@ -41,6 +41,7 @@ public class QuizActivity extends AppCompatActivity {
     private static final String API_URL = "https://api.myjson.com/bins/2g2ag";
     private static final String DEBUG_TAG = "QuizActivity";
     private static TrueFalse[] mQuestionBank;
+    private static boolean[] mCheatedArray;
 
     private class PopulateQuestionBank extends AsyncTask<Void, Void, String> {
 
@@ -60,10 +61,12 @@ public class QuizActivity extends AppCompatActivity {
                 JSONArray jsonArr = new JSONArray(data);
                 Log.d(DEBUG_TAG, jsonArr.toString());
                 mQuestionBank = new TrueFalse[jsonArr.length()];
+                mCheatedArray = new boolean[jsonArr.length()];
                 for (int i=0; i < jsonArr.length();i++) {
                     JSONObject jsonObject = jsonArr.getJSONObject(i);
                     mQuestionBank[i] = new TrueFalse(jsonObject.getString("question"),
                             Boolean.valueOf(jsonObject.getString("answer")));
+                    mCheatedArray[i] = false;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -140,7 +143,7 @@ public class QuizActivity extends AppCompatActivity {
         boolean answer = mQuestionBank[mCurrentIndex].getQuestionAnswer();
         int toastID = 0;
 
-        if (mIsCheater) {
+        if (mIsCheater || mCheatedArray[mCurrentIndex]) {
             toastID = R.string.judgement_toast;
         }
         else {
@@ -169,6 +172,7 @@ public class QuizActivity extends AppCompatActivity {
             return;
         }
         mIsCheater = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false);
+        mCheatedArray[mCurrentIndex] = mIsCheater;
     }
 
     @Override
@@ -180,6 +184,7 @@ public class QuizActivity extends AppCompatActivity {
             mCurrentIndex = savedInstanceState.getInt("KEY_INDEX", 0);
             mIsCheater = savedInstanceState.getBoolean("CHEATER_FLAG", false);
             mIsLoaded = savedInstanceState.getBoolean("ONCE_LOADED", false);
+            mCheatedArray[mCurrentIndex] = mIsCheater;
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
