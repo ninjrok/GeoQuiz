@@ -34,11 +34,13 @@ public class QuizActivity extends AppCompatActivity {
 
     private Button mTrueButton, mFalseButton, mNextButton, mPrevButton, mCheatButton;
     private TextView mQuestionTextView;
+
     private int mCurrentIndex = 0;
-    private static String API_URL = "https://api.myjson.com/bins/2g2ag";
-    private static String DEBUG_TAG = "QuizActivity";
-    private TrueFalse[] mQuestionBank;
-    private boolean mIsCheater;
+    private boolean mIsCheater, mIsLoaded;
+
+    private static final String API_URL = "https://api.myjson.com/bins/2g2ag";
+    private static final String DEBUG_TAG = "QuizActivity";
+    private static TrueFalse[] mQuestionBank;
 
     private class PopulateQuestionBank extends AsyncTask<Void, Void, String> {
 
@@ -83,7 +85,6 @@ public class QuizActivity extends AppCompatActivity {
                 conn.setConnectTimeout(15000);
                 conn.setRequestMethod("GET");
                 conn.setDoInput(true);
-                Log.d(DEBUG_TAG, "Conn parameters set. Initiating connection.");
                 conn.connect();
                 int response = conn.getResponseCode();
                 Log.d(DEBUG_TAG, "The response is: " + response);
@@ -125,6 +126,7 @@ public class QuizActivity extends AppCompatActivity {
                 progDialog.dismiss();
             }
             updateQuestionTextView();
+            mIsLoaded = true;
         }
     }
 
@@ -157,6 +159,7 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(DEBUG_TAG, "Inside onSaveInstanceState");
         savedInstanceState.putInt("KEY_INDEX", mCurrentIndex);
         savedInstanceState.putBoolean("CHEATER_FLAG", mIsCheater);
+        savedInstanceState.putBoolean("ONCE_LOADED", mIsLoaded);
     }
 
     @Override
@@ -176,6 +179,7 @@ public class QuizActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt("KEY_INDEX", 0);
             mIsCheater = savedInstanceState.getBoolean("CHEATER_FLAG", false);
+            mIsLoaded = savedInstanceState.getBoolean("ONCE_LOADED", false);
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -184,8 +188,13 @@ public class QuizActivity extends AppCompatActivity {
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            Log.d(DEBUG_TAG, "Starting async task.");
-            new PopulateQuestionBank().execute();
+            if (! mIsLoaded) {
+                Log.d(DEBUG_TAG, "Starting async task.");
+                new PopulateQuestionBank().execute();
+            }
+            else {
+                updateQuestionTextView();
+            }
         } else {
             Log.d(DEBUG_TAG, "No Network Available");
             mQuestionTextView.setText(R.string.no_network);
@@ -223,7 +232,6 @@ public class QuizActivity extends AppCompatActivity {
                     mCurrentIndex = (mCurrentIndex - 1) % mQuestionBank.length;
                 }
                 mIsCheater = false;
-                Log.d(DEBUG_TAG, "Showing previous question. mCurrIndex="+String.valueOf(mCurrentIndex));
                 updateQuestionTextView();
             }
         });
@@ -234,8 +242,6 @@ public class QuizActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
                 mIsCheater = false;
-                Log.d(DEBUG_TAG, "Showing next question. mCurrIndex="+String.valueOf(mCurrentIndex)
-                        +"mQuestionBank.length="+String.valueOf(mQuestionBank.length));
                 updateQuestionTextView();
             }
         });
