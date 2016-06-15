@@ -6,6 +6,7 @@ package com.ninjrok.geoquiz;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -31,12 +32,13 @@ import java.net.URL;
 
 public class QuizActivity extends AppCompatActivity {
 
-    private Button mTrueButton, mFalseButton, mNextButton, mPrevButton;
+    private Button mTrueButton, mFalseButton, mNextButton, mPrevButton, mCheatButton;
     private TextView mQuestionTextView;
     private int mCurrentIndex = 0;
     private static String API_URL = "https://api.myjson.com/bins/2g2ag";
     private static String DEBUG_TAG = "QuizActivity";
     private TrueFalse[] mQuestionBank;
+    private boolean mIsCheater;
 
     private class PopulateQuestionBank extends AsyncTask<Void, Void, String> {
 
@@ -51,6 +53,7 @@ public class QuizActivity extends AppCompatActivity {
                     sb.append(line+"\n");
                 }
                 jsonContent.close();
+
                 String data = sb.toString();
                 JSONArray jsonArr = new JSONArray(data);
                 Log.d(DEBUG_TAG, jsonArr.toString());
@@ -135,11 +138,15 @@ public class QuizActivity extends AppCompatActivity {
         boolean answer = mQuestionBank[mCurrentIndex].getQuestionAnswer();
         int toastID = 0;
 
-        if(answer == userInput) {
-            toastID = R.string.correct_toast;
+        if (mIsCheater) {
+            toastID = R.string.judgement_toast;
         }
         else {
-            toastID = R.string.incorrect_toast;
+            if (answer == userInput) {
+                toastID = R.string.correct_toast;
+            } else {
+                toastID = R.string.incorrect_toast;
+            }
         }
         Toast.makeText(QuizActivity.this, toastID, Toast.LENGTH_SHORT).show();
     }
@@ -149,6 +156,16 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.d(DEBUG_TAG, "Inside onSaveInstanceState");
         savedInstanceState.putInt("KEY_INDEX", mCurrentIndex);
+        savedInstanceState.putBoolean("CHEATER_FLAG", mIsCheater);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data == null) {
+            return;
+        }
+        mIsCheater = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false);
     }
 
     @Override
@@ -158,6 +175,7 @@ public class QuizActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt("KEY_INDEX", 0);
+            mIsCheater = savedInstanceState.getBoolean("CHEATER_FLAG", false);
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -177,6 +195,7 @@ public class QuizActivity extends AppCompatActivity {
         mFalseButton = (Button) findViewById(R.id.false_button);
         mNextButton = (Button) findViewById(R.id.next_button);
         mPrevButton = (Button) findViewById(R.id.prev_button);
+        mCheatButton = (Button) findViewById(R.id.cheat_button);
 
         mTrueButton.setOnClickListener(new View.OnClickListener() {
 
@@ -203,6 +222,7 @@ public class QuizActivity extends AppCompatActivity {
                 else {
                     mCurrentIndex = (mCurrentIndex - 1) % mQuestionBank.length;
                 }
+                mIsCheater = false;
                 Log.d(DEBUG_TAG, "Showing previous question. mCurrIndex="+String.valueOf(mCurrentIndex));
                 updateQuestionTextView();
             }
@@ -213,16 +233,21 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mIsCheater = false;
                 Log.d(DEBUG_TAG, "Showing next question. mCurrIndex="+String.valueOf(mCurrentIndex)
                         +"mQuestionBank.length="+String.valueOf(mQuestionBank.length));
                 updateQuestionTextView();
             }
         });
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(DEBUG_TAG, "Inside onResume");
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(QuizActivity.this, CheatActivity.class);
+                boolean answer = mQuestionBank[mCurrentIndex].getQuestionAnswer();
+                intent.putExtra(CheatActivity.EXTRA_ANSWER, answer);
+                startActivityForResult(intent, 0);
+            }
+        });
     }
 }

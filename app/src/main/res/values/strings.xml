@@ -8,4 +8,8 @@
     <string name="correct_toast">Correct!</string>
     <string name="incorrect_toast">Incorrect!</string>
     <string name="no_network">No Network Available</string>
+    <string name="cheat_button">Cheat!</string>
+    <string name="warning_text">Are you sure?</string>
+    <string name="show_answer_button">Show Answer</string>
+    <string name="judgement_toast">Cheating is wrong.</string>
 </resources>
