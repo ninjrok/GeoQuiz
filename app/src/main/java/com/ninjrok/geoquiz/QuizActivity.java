@@ -36,12 +36,12 @@ public class QuizActivity extends AppCompatActivity {
     private TextView mQuestionTextView;
 
     private int mCurrentIndex = 0;
-    private boolean mIsCheater, mIsLoaded;
 
     private static final String API_URL = "https://api.myjson.com/bins/2g2ag";
     private static final String DEBUG_TAG = "QuizActivity";
     private static TrueFalse[] mQuestionBank;
     private static boolean[] mCheatedArray;
+    private static boolean mIsCheater, mIsLoaded;
 
     private class PopulateQuestionBank extends AsyncTask<Void, Void, String> {
 
@@ -160,9 +160,9 @@ public class QuizActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         Log.d(DEBUG_TAG, "Inside onSaveInstanceState");
+        // This can be done more easily if mCurrentIndex was declared static
+        // That way the value does'nt change for any instance of the activity
         savedInstanceState.putInt("KEY_INDEX", mCurrentIndex);
-        savedInstanceState.putBoolean("CHEATER_FLAG", mIsCheater);
-        savedInstanceState.putBoolean("ONCE_LOADED", mIsLoaded);
     }
 
     @Override
@@ -182,9 +182,6 @@ public class QuizActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt("KEY_INDEX", 0);
-            mIsCheater = savedInstanceState.getBoolean("CHEATER_FLAG", false);
-            mIsLoaded = savedInstanceState.getBoolean("ONCE_LOADED", false);
-            mCheatedArray[mCurrentIndex] = mIsCheater;
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
