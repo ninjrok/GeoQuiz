@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class QuizActivity extends AppCompatActivity {
@@ -117,7 +116,7 @@ public class QuizActivity extends AppCompatActivity {
             progDialog.setMessage("Loading");
             progDialog.setIndeterminate(false);
             progDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progDialog.setCancelable(true);
+            progDialog.setCancelable(false);
             progDialog.show();
         }
 
